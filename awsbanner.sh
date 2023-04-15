@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#create new list
+#create new chain
 /usr/sbin/iptables -N AMAZON
 /usr/sbin/iptables -I INPUT 1 -j AMAZON
 
@@ -11,7 +11,7 @@ cd /
 rm ip-ranges.json
 rm awsips.txt
 
-#create the emty list
+#create the empty list
 touch awsips.txt
 
 # GET THE DATA FROM AMAZON
@@ -21,11 +21,13 @@ wget https://ip-ranges.amazonaws.com/ip-ranges.json
 jq -r '.prefixes[] | select(.service=="EC2") | .ip_prefix' < ip-ranges.json >> awsips.txt
 
 
+#Flush the specific chain
 /usr/sbin/iptables -F AMAZON
+
 # Youd be suprized what services run on amazon so if you dont do your due diligence you 
-# can potentially prevent you're third party api's access for example below we allow solve360 acces because
+# can potentially prevent your third party api's/services access. For example below we allow solve360 acces because
 # not all EC2 instances are bad. since we dont know the ip and its can change we --source the domain here.  
-/usr/sbin/iptables -A AMAZON -s secure.solve360.com -j ACCEPT
+# /usr/sbin/iptables -A AMAZON -s secure.solve360.com -j ACCEPT
 
 #loop over the entire list of active EC2 instances and ban every single one from accessing your server
 for x in $(cat awsips.txt)
